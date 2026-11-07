@@ -62,7 +62,8 @@ function aj() {
     pessoas: a.pessoas?.length ? a.pessoas : PADRAO.pessoas,
     categorias: a.categorias?.length ? a.categorias : PADRAO.categorias,
     tipos: a.tipos?.length ? a.tipos : PADRAO.tipos,
-    categoriaFaturas: a.categoriaFaturas || "Estilo de vida"
+    categoriaFaturas: a.categoriaFaturas || "Estilo de vida",
+    coresCartoes: a.coresCartoes || {}
   };
 }
 async function salvarAjustes(parcial) {
@@ -193,7 +194,7 @@ function telaResumo(c) {
       <span class="num">${brl(v)}</span></div>`).join("");
 
   const faturas = c.faturas.map((f) => `<div class="linha">
-      <div class="linha-info" data-acao="ir-cartao" data-cartao="${esc(f.nome)}"><strong>${esc(f.nome)}</strong><small>${f.itens.length} ${f.itens.length === 1 ? "item" : "itens"}</small></div>
+      ${iconeCartao(f.nome)}<div class="linha-info" data-acao="ir-cartao" data-cartao="${esc(f.nome)}"><strong>${esc(f.nome)}</strong><small>${f.itens.length} ${f.itens.length === 1 ? "item" : "itens"}</small></div>
       <span class="num">${brl(f.total)}</span>${chipStatus(f.status, "status-fatura", f.nome)}</div>`).join("");
 
   const pendFixas = c.fixas.filter((d) => d.status === "Pendente");
@@ -240,7 +241,14 @@ function corTipo(t, i = 0) {
   if (!mapaCorTipo[t]) mapaCorTipo[t] = CORES[(Object.keys(mapaCorTipo).length + 5 + i) % CORES.length];
   return mapaCorTipo[t];
 }
+// Ícone genérico de cartão (sem marca de banco) na cor escolhida para cada cartão
+function iconeCartao(nome, classe = "") {
+  const cor = corCartao(nome);
+  return `<svg class="icone-cartao ${classe}" viewBox="0 0 32 22" aria-hidden="true"><rect width="32" height="22" rx="4" fill="${cor}"/><rect x="4" y="7" width="7" height="5.5" rx="1.2" fill="#fff" opacity=".85"/><rect x="4" y="16" width="14" height="2" rx="1" fill="#fff" opacity=".55"/><circle cx="24" cy="16.5" r="2.6" fill="#fff" opacity=".45"/><circle cx="27" cy="16.5" r="2.6" fill="#fff" opacity=".3"/></svg>`;
+}
 function corCartao(nome) {
+  const escolhida = aj().coresCartoes[nome];
+  if (escolhida) return escolhida;
   const lista = aj().cartoes;
   const i = lista.indexOf(nome);
   return CORES[(i >= 0 ? i : lista.length + nome.length) % CORES.length];
@@ -285,7 +293,7 @@ function telaFixas(c) {
 function telaCartoes(c) {
   const filtro = S.filtroCartao;
   const chips = [`<button class="chip ${filtro === "todos" ? "ativo" : ""}" data-acao="filtro-cartao" data-cartao="todos">Todos <b>${brlCurto(c.totalCartoes)}</b></button>`]
-    .concat(c.faturas.map((f) => `<button class="chip ${filtro === f.nome ? "ativo" : ""}" data-acao="filtro-cartao" data-cartao="${esc(f.nome)}"><i style="background:${corCartao(f.nome)}"></i>${esc(f.nome)} <b>${brlCurto(f.total)}</b></button>`)).join("");
+    .concat(c.faturas.map((f) => `<button class="chip ${filtro === f.nome ? "ativo" : ""}" data-acao="filtro-cartao" data-cartao="${esc(f.nome)}">${iconeCartao(f.nome, "mini")}${esc(f.nome)} <b>${brlCurto(f.total)}</b></button>`)).join("");
 
   const pessoas = Object.entries(c.porPessoa).sort((a, b) => b[1] - a[1]).map(([p, v]) => `<span class="pill">${esc(p)}: <b class="num">${brl(v)}</b></span>`).join("");
 
@@ -293,7 +301,7 @@ function telaCartoes(c) {
     const dif = f.informado != null ? f.informado - f.somaItens : 0;
     return `<div class="cartao">
       <div class="cartao-titulo cartao-fatura">
-        <h3><i class="bolinha" style="background:${corCartao(f.nome)}"></i>${esc(f.nome)}</h3>
+        <h3>${iconeCartao(f.nome, "grande")}${esc(f.nome)}</h3>
         <div class="fatura-dir"><span class="num grande">${brl(f.total)}</span>${chipStatus(f.status, "status-fatura", f.nome)}</div>
       </div>
       <div class="fatura-info">
@@ -462,7 +470,8 @@ function telaAjustes() {
   const lista = (chave, titulo, dica) => `<div class="cartao">
     <div class="cartao-titulo"><h3>${titulo}</h3></div>
     ${dica ? `<p class="dica">${dica}</p>` : ""}
-    <div class="chips quebra">${A[chave].map((x) => `<span class="chip fixo">${esc(x)}<button data-acao="remover-lista" data-lista="${chave}" data-valor="${esc(x)}" aria-label="Remover ${esc(x)}">×</button></span>`).join("")}</div>
+    ${chave === "cartoes" ? `<p class="dica">Toque no cartão colorido para escolher a cor de cada um.</p>` : ""}
+    <div class="chips quebra">${A[chave].map((x) => `<span class="chip fixo">${chave === "cartoes" ? `<label class="seletor-cor" title="Mudar cor">${iconeCartao(x, "mini")}<input type="color" class="cor-cartao" data-cartao="${esc(x)}" value="${corCartao(x)}"></label>` : ""}${esc(x)}<button data-acao="remover-lista" data-lista="${chave}" data-valor="${esc(x)}" aria-label="Remover ${esc(x)}">×</button></span>`).join("")}</div>
     <div class="linha-add"><input type="text" id="add-${chave}" placeholder="Adicionar…" enterkeyhint="done"><button class="btn" data-acao="add-lista" data-lista="${chave}">Adicionar</button></div>
   </div>`;
   const u = S.usuario;
@@ -901,6 +910,10 @@ document.addEventListener("keydown", (e) => {
 });
 document.addEventListener("change", (e) => {
   if (e.target.id === "input-mes" && e.target.value) mudarMes(e.target.value);
+  if (e.target.classList?.contains("cor-cartao")) {
+    const cores = { ...aj().coresCartoes, [e.target.dataset.cartao]: e.target.value };
+    tentar(() => salvarAjustes({ coresCartoes: cores }), "Cor salva");
+  }
   if (e.target.id === "arquivo-xlsx" && e.target.files[0]) { importarXlsx(e.target.files[0]); e.target.value = ""; }
   if (e.target.id === "arquivo-backup" && e.target.files[0]) { restaurarBackup(e.target.files[0]); e.target.value = ""; }
 });

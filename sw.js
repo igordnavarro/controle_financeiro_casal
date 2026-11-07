@@ -1,6 +1,6 @@
 // Service worker: deixa o app abrir offline e instalável no celular/tablet.
 // Os dados offline ficam no cache do próprio Firestore; aqui guardamos só os arquivos do app.
-const VERSAO = "fc-v3";
+const VERSAO = "fc-v4";
 const ARQUIVOS = [
   "./", "index.html", "css/styles.css", "js/app.js", "js/store.js", "js/config.js", "js/importer.js",
   "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"
