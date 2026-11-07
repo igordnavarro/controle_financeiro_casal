@@ -300,3 +300,8 @@ input:focus, select:focus { outline: 2px solid var(--marca); outline-offset: 1px
   .app.menu-oculto .nav-lateral { display: none; }
   .app.menu-oculto .conteudo { max-width: 1440px; }
 }
+
+/* Seção Cartões dentro de Despesas */
+.secao-titulo { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 18px; padding-top: 20px; border-top: 2px dashed var(--linha); scroll-margin-top: 70px; }
+.secao-titulo.sem-borda { margin-top: 0; padding-top: 0; border-top: 0; }
+.secao-titulo h2 { font-size: 1.15rem; }

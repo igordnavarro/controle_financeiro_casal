@@ -7,7 +7,7 @@ com login Google e sincronização em tempo real: o que um lança aparece no apa
 **O que tem**
 - **Resumo do mês**: rendas, despesas, sobra/falta, real × ideal por categoria (50/25/15/10), gastos por tipo, faturas e pendências.
 - **Despesas**: fixas (repetem todo mês) e avulsas (só daquele mês), com troca entre as duas num toque; por categoria, status Pendente/Pago/Reservado com um toque, botão "copiar fixas do mês anterior" (parcelas tipo 10/60 avançam sozinhas; avulsas não são copiadas).
-- **Cartões**: compras à vista ou parceladas — lança uma vez e as próximas parcelas caem nos meses seguintes. Fatura por cartão, quem gastou (Igor/Thais/Casal), e campo para o valor real da fatura quando nem tudo foi detalhado.
+- **Cartões** (dentro de Despesas, com o filtro "Cartões"): compras à vista ou parceladas — lança uma vez e as próximas parcelas caem nos meses seguintes. Fatura por cartão, quem gastou (Igor/Thais/Casal), e campo para o valor real da fatura quando nem tudo foi detalhado.
 - **Rendas**: salários e "a receber de alguém", com marcação de recebido.
 - **Gráficos**: por tipo de gasto, fatura por cartão ao longo do tempo, tipos ao longo do tempo, rendas × despesas, real × ideal.
 - **Importação da planilha** (.xlsx) com todos os meses, **backup** em JSON, funciona **offline**.
@@ -87,7 +87,7 @@ Cada um entra com a própria conta Google; os dois veem e editam os mesmos dados
 - **Botão +**: lança compra no cartão, despesa fixa, salário ou valor a receber.
 - **Compra parcelada**: informe o valor (da parcela ou total) e o nº de parcelas. Para uma compra que já está na parcela 3 de 10, coloque 3 em "Parcela deste mês".
 - **Virou o mês**: no Resumo aparece "Copiar fixas e salários do mês anterior". As parcelas de cartão já estarão lá.
-- **Fatura do banco diferente da soma dos itens**: na aba Cartões, "informar valor da fatura".
+- **Fatura do banco diferente da soma dos itens**: em Despesas → Cartões, "informar valor da fatura".
 - **Trocar de mês**: setas no topo, toque no nome do mês, ou deslize para os lados no celular.
 - **Ajustes**: cartões, tipos de gasto, pessoas, categorias e % ideal (50/25/15/10), e em qual categoria as faturas contam (padrão: Estilo de vida, como na planilha).
 

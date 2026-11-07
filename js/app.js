@@ -10,16 +10,24 @@ const S = {
   ajustes: null,
   despesas: [], cartoes: [], rendas: [], faturas: [],
   mes: localStorage.getItem("fc_mes") || mesHoje(),
-  aba: (location.hash || "#resumo").slice(1),
+  aba: "resumo",
   filtroCartao: "todos",
   periodo: 12,
   graficos: []
 };
 
+S.aba = abaValida((location.hash || "#resumo").slice(1));
+
+// "fixas" e "cartoes" eram abas separadas: hoje fazem parte de Despesas
+function abaValida(aba) {
+  if (aba === "fixas") return "despesas";
+  if (aba === "cartoes") { S.filtroDesp = "cartoes"; return "despesas"; }
+  return aba || "resumo";
+}
+
 const ABAS = [
   { id: "resumo", nome: "Resumo", icone: '<path d="M4 13h6V4H4zm0 7h6v-5H4zm10 0h6v-9h-6zm0-16v5h6V4z"/>' },
-  { id: "fixas", nome: "Despesas", icone: '<path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2zm2 5h6v2H9zm0 4h6v2H9z"/>' },
-  { id: "cartoes", nome: "Cartões", icone: '<path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zm2 2v2h14V8zm0 6v4h14v-4zm9 1h3v2h-3z"/>' },
+  { id: "despesas", nome: "Despesas", icone: '<path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2zm2 5h6v2H9zm0 4h6v2H9z"/>' },
   { id: "rendas", nome: "Rendas", icone: '<path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm1 4h-2v1.1A3 3 0 0 0 8.5 10c0 1.9 1.6 2.6 3.1 3 1.2.3 1.9.6 1.9 1.3s-.7 1.2-1.6 1.2c-1 0-1.8-.5-2-1.4H8.1a3.4 3.4 0 0 0 2.9 3V18h2v-1.1c1.6-.3 2.6-1.4 2.6-2.8 0-2-1.7-2.6-3.2-3-1.1-.3-1.8-.5-1.8-1.1 0-.6.6-1 1.4-1 .8 0 1.4.4 1.6 1.1h1.8A3.3 3.3 0 0 0 13 7.1z"/>' },
   { id: "graficos", nome: "Gráficos", icone: '<path d="M4 20V10h3v10zm6.5 0V4h3v16zM17 20v-7h3v7z"/>' },
   { id: "ajustes", nome: "Ajustes", lateral: true, icone: '<path d="M19.4 13a7.7 7.7 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.7a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.7 7.7 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1L11 21h4l.4-2.7a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/>' }
@@ -160,7 +168,7 @@ function render() {
   renderTopo();
   const c = calcMes(S.mes);
   const tela = $("#tela");
-  const telas = { resumo: telaResumo, fixas: telaFixas, cartoes: telaCartoes, rendas: telaRendas, graficos: telaGraficos, ajustes: telaAjustes };
+  const telas = { resumo: telaResumo, despesas: telaDespesas, rendas: telaRendas, graficos: telaGraficos, ajustes: telaAjustes };
   tela.innerHTML = (telas[S.aba] || telaResumo)(c);
   if (S.aba === "graficos") desenharGraficos();
 }
@@ -230,7 +238,7 @@ function telaResumo(c) {
   <div class="grade-2">
     <div class="cartao"><div class="cartao-titulo"><h3>Faturas do mês</h3><span class="num">${brl(c.totalCartoes)}</span></div>${faturas || vazio("Nenhuma compra no cartão neste mês")}</div>
     <div class="cartao"><div class="cartao-titulo"><h3>Pendências</h3></div>
-      ${pendFixas.length ? `<div class="linha"><div class="linha-info" data-acao="ir" data-aba="fixas"><strong>${pendFixas.length} despesa${pendFixas.length > 1 ? "s" : ""} pendente${pendFixas.length > 1 ? "s" : ""}</strong><small>${esc(pendFixas.slice(0, 3).map((d) => d.descricao).join(", "))}${pendFixas.length > 3 ? "…" : ""}</small></div><span class="num">${brl(soma(pendFixas))}</span></div>` : ""}
+      ${pendFixas.length ? `<div class="linha"><div class="linha-info" data-acao="ir" data-aba="despesas"><strong>${pendFixas.length} despesa${pendFixas.length > 1 ? "s" : ""} pendente${pendFixas.length > 1 ? "s" : ""}</strong><small>${esc(pendFixas.slice(0, 3).map((d) => d.descricao).join(", "))}${pendFixas.length > 3 ? "…" : ""}</small></div><span class="num">${brl(soma(pendFixas))}</span></div>` : ""}
       ${pendRec.map((r) => `<div class="linha"><div class="linha-info" data-acao="editar-renda" data-id="${r.id}"><strong>A receber: ${esc(r.descricao)}</strong><small>${esc(r.obs || "")}</small></div><span class="num">${brl(r.valor)}</span></div>`).join("")}
       ${!pendFixas.length && !pendRec.length ? vazio("Nada pendente 🎉") : ""}
     </div>
@@ -259,19 +267,19 @@ function corCartao(nome) {
 }
 
 // ---------- Despesas fixas ----------
-function telaFixas(c) {
+function telaDespesas(c) {
   const A = aj();
   const anterior = somaMes(S.mes, -1);
   const qtdAnterior = S.despesas.filter((d) => d.mes === anterior && d.recorrente !== false).length;
   const ehFixa = (d) => d.recorrente !== false;
   const filtro = S.filtroDesp || "todas";
-  const visiveis = c.fixas.filter((d) => filtro === "todas" || (filtro === "fixas" ? ehFixa(d) : !ehFixa(d)));
+  const visiveis = filtro === "cartoes" ? [] : c.fixas.filter((d) => filtro === "todas" || (filtro === "fixas" ? ehFixa(d) : !ehFixa(d)));
   const cats = [...A.categorias.map((x) => x.nome)];
   c.fixas.forEach((d) => { if (!cats.includes(d.categoria)) cats.push(d.categoria); });
 
   const grupos = cats.map((cat) => {
     const itens = visiveis.filter((d) => d.categoria === cat).sort((a, b) => (ehFixa(b) - ehFixa(a)) || ((b.valor || 0) - (a.valor || 0)));
-    const extra = filtro === "todas" && cat === A.categoriaFaturas && c.totalCartoes ? `<div class="linha sutil"><div class="linha-info" data-acao="ir" data-aba="cartoes"><strong>Faturas de cartão</strong><small>calculadas na aba Cartões</small></div><span class="num">${brl(c.totalCartoes)}</span></div>` : "";
+    const extra = filtro === "todas" && cat === A.categoriaFaturas && c.totalCartoes ? `<div class="linha sutil"><div class="linha-info" data-acao="rolar-cartoes"><strong>Faturas de cartão</strong><small>detalhadas mais abaixo, em Cartões</small></div><span class="num">${brl(c.totalCartoes)}</span></div>` : "";
     if (!itens.length && !extra) return "";
     return `<div class="cartao">
       <div class="cartao-titulo"><h3>${esc(cat || "Sem categoria")}</h3><span class="num">${brl(soma(itens) + (extra ? c.totalCartoes : 0))}</span></div>
@@ -287,22 +295,25 @@ function telaFixas(c) {
   const totFixas = soma(c.fixas.filter(ehFixa)), totAvulsas = soma(c.fixas.filter((d) => !ehFixa(d)));
   const pagos = soma(c.fixas.filter((d) => d.status === "Pago"));
   const chipF = (id, nome, v) => `<button class="chip ${filtro === id ? "ativo" : ""}" data-acao="filtro-desp" data-f="${id}">${nome} <b>${brlCurto(v)}</b></button>`;
+  const contas = grupos || vazio(filtro === "todas" ? `Nenhuma conta lançada em ${rotuloMes(S.mes)}.` : `Nenhuma despesa ${filtro === "fixas" ? "fixa" : "avulsa"} em ${rotuloMes(S.mes)}.`, qtdAnterior && filtro !== "avulsas" ? `<button class="btn btn-primario" data-acao="copiar-fixas">Copiar ${qtdAnterior} despesas fixas de ${rotuloMes(anterior, true)}</button>` : "");
   return `
   <div class="cabecalho-tela">
-    <div><h2>Despesas</h2><p class="sub">${brl(c.totalFixas)} no mês · ${brl(pagos)} já pago</p></div>
+    <div><h2>Despesas</h2><p class="sub">${brl(c.totalDespesas)} no mês · contas ${brl(c.totalFixas)} · cartões ${brl(c.totalCartoes)}</p></div>
     <div class="acoes">
-      ${qtdAnterior ? `<button class="btn" data-acao="copiar-fixas">Copiar fixas de ${rotuloMes(anterior, true)}</button>` : ""}
+      ${qtdAnterior && filtro !== "cartoes" ? `<button class="btn" data-acao="copiar-fixas">Copiar fixas de ${rotuloMes(anterior, true)}</button>` : ""}
       <button class="btn" data-acao="nova-fixa" data-fixa="0">+ Avulsa</button>
-      <button class="btn btn-primario" data-acao="nova-fixa" data-fixa="1">+ Fixa</button>
+      <button class="btn" data-acao="nova-fixa" data-fixa="1">+ Fixa</button>
+      <button class="btn btn-primario" data-acao="novo-cartao">+ Cartão</button>
     </div>
   </div>
-  <div class="chips rolagem">${chipF("todas", "Todas", c.totalFixas)}${chipF("fixas", "Fixas", totFixas)}${chipF("avulsas", "Avulsas", totAvulsas)}</div>
-  <p class="dica"><b>Fixa</b> repete todo mês (entra no "copiar fixas"); <b>avulsa</b> é só deste mês. Toque na etiqueta para trocar, e no status para alternar <b>Pendente → Pago → Reservado</b>.</p>
-  ${grupos || vazio(filtro === "todas" ? `Nenhuma despesa em ${rotuloMes(S.mes)}.` : `Nenhuma despesa ${filtro === "fixas" ? "fixa" : "avulsa"} em ${rotuloMes(S.mes)}.`, qtdAnterior && filtro !== "avulsas" ? `<button class="btn btn-primario" data-acao="copiar-fixas">Copiar ${qtdAnterior} despesas fixas de ${rotuloMes(anterior, true)}</button>` : "")}`;
+  <div class="chips rolagem">${chipF("todas", "Todas", c.totalDespesas)}${chipF("fixas", "Fixas", totFixas)}${chipF("avulsas", "Avulsas", totAvulsas)}${chipF("cartoes", "Cartões", c.totalCartoes)}</div>
+  ${filtro !== "cartoes" ? `<p class="dica"><b>Fixa</b> repete todo mês (entra no "copiar fixas"); <b>avulsa</b> é só deste mês. Toque na etiqueta para trocar, e no status para alternar <b>Pendente → Pago → Reservado</b>.</p>
+  ${contas}` : ""}
+  ${filtro === "todas" || filtro === "cartoes" ? secaoCartoes(c, filtro === "cartoes") : ""}`;
 }
 
 // ---------- Cartões ----------
-function telaCartoes(c) {
+function secaoCartoes(c, sozinha) {
   const filtro = S.filtroCartao;
   const chips = [`<button class="chip ${filtro === "todos" ? "ativo" : ""}" data-acao="filtro-cartao" data-cartao="todos">Todos <b>${brlCurto(c.totalCartoes)}</b></button>`]
     .concat(c.faturas.map((f) => `<button class="chip ${filtro === f.nome ? "ativo" : ""}" data-acao="filtro-cartao" data-cartao="${esc(f.nome)}">${iconeCartao(f.nome, "mini")}${esc(f.nome)} <b>${brlCurto(f.total)}</b></button>`)).join("");
@@ -329,9 +340,9 @@ function telaCartoes(c) {
   }).join("");
 
   return `
-  <div class="cabecalho-tela">
+  <div class="secao-titulo ${sozinha ? "sem-borda" : ""}" id="secao-cartoes">
     <div><h2>Cartões</h2><p class="sub">${brl(c.totalCartoes)} em faturas · ${c.itens.length} lançamentos</p></div>
-    <div class="acoes"><button class="btn btn-primario" data-acao="novo-cartao">+ Compra</button></div>
+    <button class="btn" data-acao="novo-cartao">+ Compra no cartão</button>
   </div>
   <div class="chips rolagem">${chips}</div>
   ${pessoas ? `<div class="pills">${pessoas}</div>` : ""}
@@ -590,6 +601,21 @@ function escolherNovo() {
   });
 }
 
+function escolherDespesa() {
+  const html = `<h2>Nova despesa</h2>
+  <div class="escolhas">
+    <button class="escolha" value="cartao" formnovalidate><b>Compra no cartão</b><small>à vista ou parcelada</small></button>
+    <button class="escolha" value="avulsa" formnovalidate><b>Despesa avulsa</b><small>só deste mês, fora do cartão</small></button>
+    <button class="escolha" value="fixa" formnovalidate><b>Despesa fixa</b><small>aluguel, água, empréstimo…</small></button>
+  </div>
+  <div class="modal-acoes"><span></span><button class="btn" value="cancelar" formnovalidate>Cancelar</button></div>`;
+  abrirModal(html, (_, v) => {
+    modal().close();
+    setTimeout(() => { if (v === "cartao") formCartao(); else if (v === "fixa") formFixa(null, true); else if (v === "avulsa") formFixa(null, false); }, 50);
+    return false;
+  });
+}
+
 // ---------- Compra no cartão ----------
 function formCartao(item) {
   const A = aj();
@@ -843,7 +869,8 @@ async function restaurarBackup(arquivo) {
 // Eventos
 // =====================================================================
 function irPara(aba) {
-  S.aba = aba;
+  S.aba = abaValida(aba);
+  aba = S.aba;
   history.replaceState(null, "", "#" + aba);
   render();
   window.scrollTo({ top: 0 });
@@ -865,8 +892,11 @@ document.addEventListener("click", async (e) => {
     case "mes-anterior": return mudarMes(somaMes(S.mes, -1));
     case "mes-proximo": return mudarMes(somaMes(S.mes, 1));
     case "novo":
-      if (S.aba === "cartoes") return formCartao();
-      if (S.aba === "fixas") return formFixa(null, S.filtroDesp !== "avulsas");
+      if (S.aba === "despesas") {
+        if (S.filtroDesp === "cartoes") return formCartao();
+        if (S.filtroDesp === "fixas" || S.filtroDesp === "avulsas") return formFixa(null, S.filtroDesp === "fixas");
+        return escolherDespesa();
+      }
       return escolherNovo();
     case "nova-fixa": return formFixa(null, el.dataset.fixa !== "0");
     case "filtro-desp": S.filtroDesp = el.dataset.f; return render();
@@ -881,7 +911,8 @@ document.addEventListener("click", async (e) => {
     case "editar-cartao": return formCartao(S.cartoes.find((x) => x.id === id));
     case "editar-renda": return formRenda(S.rendas.find((x) => x.id === id));
     case "editar-fatura": return formFatura(el.dataset.cartao);
-    case "ir-cartao": S.filtroCartao = el.dataset.cartao; return irPara("cartoes");
+    case "ir-cartao": S.filtroCartao = el.dataset.cartao; S.filtroDesp = "cartoes"; return irPara("despesas");
+    case "rolar-cartoes": return document.getElementById("secao-cartoes")?.scrollIntoView({ behavior: "smooth", block: "start" });
     case "filtro-cartao": S.filtroCartao = el.dataset.cartao; return render();
     case "periodo": S.periodo = Number(el.dataset.n); return render();
     case "status-fixa": {
@@ -958,7 +989,7 @@ document.addEventListener("change", (e) => {
   if (e.target.id === "arquivo-backup" && e.target.files[0]) { restaurarBackup(e.target.files[0]); e.target.value = ""; }
 });
 $("#modal").addEventListener("click", (e) => { if (e.target === modal()) modal().close(); });
-window.addEventListener("hashchange", () => { const a = location.hash.slice(1); if (a && a !== S.aba) irPara(a); });
+window.addEventListener("hashchange", () => { const a = location.hash.slice(1); if (a && abaValida(a) !== S.aba) irPara(a); });
 window.addEventListener("online", renderTopo);
 window.addEventListener("offline", renderTopo);
 
