@@ -46,6 +46,7 @@
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+body { overflow-x: hidden; }
 body {
   margin: 0; font-family: var(--fonte); background: var(--fundo); color: var(--texto);
   font-size: 15px; line-height: 1.45; -webkit-font-smoothing: antialiased;
@@ -236,14 +237,14 @@ input:focus, select:focus { outline: 2px solid var(--marca); outline-offset: 1px
 .rodape { text-align: center; color: var(--texto-2); font-size: .8rem; }
 
 /* ---------- Modal ---------- */
-.modal { border: 0; padding: 0; border-radius: 22px; width: min(520px, calc(100vw - 24px)); max-height: calc(100dvh - 40px); background: var(--superficie); color: var(--texto); box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+.modal { overflow-y: auto; overscroll-behavior: contain; border: 0; padding: 0; border-radius: 22px; width: min(520px, calc(100vw - 24px)); max-height: calc(100dvh - 40px); background: var(--superficie); color: var(--texto); box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
 .modal::backdrop { background: rgba(10, 15, 13, .45); backdrop-filter: blur(2px); }
 .modal-corpo { padding: 22px 20px 18px; display: flex; flex-direction: column; gap: 12px; }
 .modal-corpo h2 { font-size: 1.2rem; margin-bottom: 2px; }
 .modal-corpo p { margin: 0; }
 @media (max-width: 600px) {
-  .modal { margin: auto 0 0; width: 100vw; max-width: 100vw; border-radius: 22px 22px 0 0; max-height: 92dvh; }
-  .modal-corpo { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+  .modal { margin: auto 0 0; width: 100vw; max-width: 100vw; border-radius: 22px 22px 0 0; max-height: 88vh; max-height: 88svh; }
+  .modal-corpo { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
 }
 .campo { display: flex; flex-direction: column; gap: 5px; }
 .campo > span { font-size: .8rem; font-weight: 600; color: var(--texto-2); }
@@ -271,3 +272,15 @@ input:focus, select:focus { outline: 2px solid var(--marca); outline-offset: 1px
 .cartao-fatura h3 { gap: 10px; }
 .seletor-cor { position: relative; display: inline-flex; cursor: pointer; }
 .seletor-cor input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; border: 0; padding: 0; }
+
+/* Despesa fixa x avulsa */
+.tag-fixa { border: 1px solid var(--linha); background: var(--superficie-2); color: var(--texto-2); border-radius: 8px; padding: 2px 8px; font-size: .72rem; font-weight: 700; flex-shrink: 0; }
+.tag-fixa.on { background: var(--marca-suave); color: var(--marca); border-color: transparent; }
+.segmentado { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.segmentado label { position: relative; cursor: pointer; }
+.segmentado input { position: absolute; opacity: 0; }
+.segmentado span { display: flex; flex-direction: column; border: 1.5px solid var(--linha); border-radius: 12px; padding: 10px 12px; background: var(--superficie-2); }
+.segmentado small { color: var(--texto-2); font-size: .78rem; }
+.segmentado input:checked + span { border-color: var(--marca); background: var(--marca-suave); }
+.segmentado input:focus-visible + span { outline: 2px solid var(--marca); outline-offset: 1px; }
+@media (max-width: 420px) { .linha .tag-fixa { padding: 2px 6px; } .chip-status { min-width: 74px; } }

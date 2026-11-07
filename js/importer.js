@@ -44,7 +44,7 @@ const REGRAS_TIPO = [
   ["Assinaturas", /netflix|spot|youtube|google|storage|armazenamento|icloud|prime|disney|hbo|deezer|assinatura|capcut|meli \+|queima diaria|recarga|\bvivo\b|claro|tim\b/],
   ["Pets", /racao|faisca|fasica|zenrelia|vet|pet|banho e tosa|petshop/],
   ["Viagem e lazer", /airbnb|hotel|passage|viagem|viuagem|eurotrip|aereo|aero|beto carrero|floripa|penha|cinema|show|cadeira de praia|lanche|restaurante|ifood|bar |camping|acampamento|almoco|cafe da manha|alimentacao|budpark|madeiro|piemonte|\bbus\b|jogo|violao|bateria/],
-  ["Transporte", /combust|gasolina|pedagio|carro|uber|onibus|estacionamento|ipva|seguro carro|oficina|pneu|chave do carro|autozone|ford|conserto|concerto|biscicleta|bicicleta/],
+  ["Transporte", /combust|gasolina|pedagio|carro|uber|onibus|estacionamento|ipva|seguro carro|oficina|pneu|chave do carro|autozone|ford|biscicleta|bicicleta/],
   ["Estúdio", /estudio|estudo|micromotor|micro motor|tablet|placa|tintas|aliexpress|esmalte|broca|\bgel\b|geis|lixa|mandril|palito|topcoat|kinectis|carmen lee|kit gravacao|atelie|prep|unhas/],
   ["Cuidados pessoais", /cabelo|perfume|shampoo|condicionador|creme|maquiagem|hidratante|sabonete|gilete|corte e barba|barbearia|produtos rosto|produtos de cabelo|tesoura/],
   ["Saúde", /remedio|consulta|farmacia|medic|dentista|exame|plano de saude|seguro de vida|unimed|inalador|cirurgia|canetas emagrecedoras|panvel|raia|dipirona|boxe|academia/],

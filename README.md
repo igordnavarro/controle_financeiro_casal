@@ -6,7 +6,7 @@ com login Google e sincronização em tempo real: o que um lança aparece no apa
 
 **O que tem**
 - **Resumo do mês**: rendas, despesas, sobra/falta, real × ideal por categoria (50/25/15/10), gastos por tipo, faturas e pendências.
-- **Despesas fixas**: por categoria, status Pendente/Pago/Reservado com um toque, botão "copiar do mês anterior" (parcelas tipo 10/60 avançam sozinhas).
+- **Despesas**: fixas (repetem todo mês) e avulsas (só daquele mês), com troca entre as duas num toque; por categoria, status Pendente/Pago/Reservado com um toque, botão "copiar fixas do mês anterior" (parcelas tipo 10/60 avançam sozinhas; avulsas não são copiadas).
 - **Cartões**: compras à vista ou parceladas — lança uma vez e as próximas parcelas caem nos meses seguintes. Fatura por cartão, quem gastou (Igor/Thais/Casal), e campo para o valor real da fatura quando nem tudo foi detalhado.
 - **Rendas**: salários e "a receber de alguém", com marcação de recebido.
 - **Gráficos**: por tipo de gasto, fatura por cartão ao longo do tempo, tipos ao longo do tempo, rendas × despesas, real × ideal.

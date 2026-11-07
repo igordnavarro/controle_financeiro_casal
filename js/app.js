@@ -18,7 +18,7 @@ const S = {
 
 const ABAS = [
   { id: "resumo", nome: "Resumo", icone: '<path d="M4 13h6V4H4zm0 7h6v-5H4zm10 0h6v-9h-6zm0-16v5h6V4z"/>' },
-  { id: "fixas", nome: "Fixas", icone: '<path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2zm2 5h6v2H9zm0 4h6v2H9z"/>' },
+  { id: "fixas", nome: "Despesas", icone: '<path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2zm2 5h6v2H9zm0 4h6v2H9z"/>' },
   { id: "cartoes", nome: "Cartões", icone: '<path d="M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zm2 2v2h14V8zm0 6v4h14v-4zm9 1h3v2h-3z"/>' },
   { id: "rendas", nome: "Rendas", icone: '<path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm1 4h-2v1.1A3 3 0 0 0 8.5 10c0 1.9 1.6 2.6 3.1 3 1.2.3 1.9.6 1.9 1.3s-.7 1.2-1.6 1.2c-1 0-1.8-.5-2-1.4H8.1a3.4 3.4 0 0 0 2.9 3V18h2v-1.1c1.6-.3 2.6-1.4 2.6-2.8 0-2-1.7-2.6-3.2-3-1.1-.3-1.8-.5-1.8-1.1 0-.6.6-1 1.4-1 .8 0 1.4.4 1.6 1.1h1.8A3.3 3.3 0 0 0 13 7.1z"/>' },
   { id: "graficos", nome: "Gráficos", icone: '<path d="M4 20V10h3v10zm6.5 0V4h3v16zM17 20v-7h3v7z"/>' },
@@ -214,7 +214,7 @@ function telaResumo(c) {
   ${comecar}
   <div class="kpis">
     <div class="kpi"><span>Rendas</span><strong class="num">${brl(c.totalRendas)}</strong><small>${c.receberPendente ? `${brl(c.receberPendente)} ainda a receber` : "&nbsp;"}</small></div>
-    <div class="kpi"><span>Despesas</span><strong class="num">${brl(c.totalDespesas)}</strong><small>Fixas ${brlCurto(c.totalFixas)} · Cartões ${brlCurto(c.totalCartoes)}</small></div>
+    <div class="kpi"><span>Despesas</span><strong class="num">${brl(c.totalDespesas)}</strong><small>Contas ${brlCurto(c.totalFixas)} · Cartões ${brlCurto(c.totalCartoes)}</small></div>
     <div class="kpi ${c.sobra < 0 ? "negativo" : "positivo"}"><span>${c.sobra < 0 ? "Faltou" : "Sobra"}</span><strong class="num">${brl(Math.abs(c.sobra))}</strong><small>${c.totalRendas ? Math.round((c.sobra / c.totalRendas) * 100) + "% da renda" : "&nbsp;"}</small></div>
   </div>
 
@@ -226,7 +226,7 @@ function telaResumo(c) {
   <div class="grade-2">
     <div class="cartao"><div class="cartao-titulo"><h3>Faturas do mês</h3><span class="num">${brl(c.totalCartoes)}</span></div>${faturas || vazio("Nenhuma compra no cartão neste mês")}</div>
     <div class="cartao"><div class="cartao-titulo"><h3>Pendências</h3></div>
-      ${pendFixas.length ? `<div class="linha"><div class="linha-info" data-acao="ir" data-aba="fixas"><strong>${pendFixas.length} despesa${pendFixas.length > 1 ? "s" : ""} fixa${pendFixas.length > 1 ? "s" : ""} pendente${pendFixas.length > 1 ? "s" : ""}</strong><small>${esc(pendFixas.slice(0, 3).map((d) => d.descricao).join(", "))}${pendFixas.length > 3 ? "…" : ""}</small></div><span class="num">${brl(soma(pendFixas))}</span></div>` : ""}
+      ${pendFixas.length ? `<div class="linha"><div class="linha-info" data-acao="ir" data-aba="fixas"><strong>${pendFixas.length} despesa${pendFixas.length > 1 ? "s" : ""} pendente${pendFixas.length > 1 ? "s" : ""}</strong><small>${esc(pendFixas.slice(0, 3).map((d) => d.descricao).join(", "))}${pendFixas.length > 3 ? "…" : ""}</small></div><span class="num">${brl(soma(pendFixas))}</span></div>` : ""}
       ${pendRec.map((r) => `<div class="linha"><div class="linha-info" data-acao="editar-renda" data-id="${r.id}"><strong>A receber: ${esc(r.descricao)}</strong><small>${esc(r.obs || "")}</small></div><span class="num">${brl(r.valor)}</span></div>`).join("")}
       ${!pendFixas.length && !pendRec.length ? vazio("Nada pendente 🎉") : ""}
     </div>
@@ -259,34 +259,42 @@ function telaFixas(c) {
   const A = aj();
   const anterior = somaMes(S.mes, -1);
   const qtdAnterior = S.despesas.filter((d) => d.mes === anterior && d.recorrente !== false).length;
+  const ehFixa = (d) => d.recorrente !== false;
+  const filtro = S.filtroDesp || "todas";
+  const visiveis = c.fixas.filter((d) => filtro === "todas" || (filtro === "fixas" ? ehFixa(d) : !ehFixa(d)));
   const cats = [...A.categorias.map((x) => x.nome)];
   c.fixas.forEach((d) => { if (!cats.includes(d.categoria)) cats.push(d.categoria); });
 
   const grupos = cats.map((cat) => {
-    const itens = c.fixas.filter((d) => d.categoria === cat).sort((a, b) => (b.valor || 0) - (a.valor || 0));
-    const extra = cat === A.categoriaFaturas && c.totalCartoes ? `<div class="linha sutil"><div class="linha-info" data-acao="ir" data-aba="cartoes"><strong>Faturas de cartão</strong><small>calculadas na aba Cartões</small></div><span class="num">${brl(c.totalCartoes)}</span></div>` : "";
+    const itens = visiveis.filter((d) => d.categoria === cat).sort((a, b) => (ehFixa(b) - ehFixa(a)) || ((b.valor || 0) - (a.valor || 0)));
+    const extra = filtro === "todas" && cat === A.categoriaFaturas && c.totalCartoes ? `<div class="linha sutil"><div class="linha-info" data-acao="ir" data-aba="cartoes"><strong>Faturas de cartão</strong><small>calculadas na aba Cartões</small></div><span class="num">${brl(c.totalCartoes)}</span></div>` : "";
     if (!itens.length && !extra) return "";
     return `<div class="cartao">
       <div class="cartao-titulo"><h3>${esc(cat || "Sem categoria")}</h3><span class="num">${brl(soma(itens) + (extra ? c.totalCartoes : 0))}</span></div>
       ${itens.map((d) => `<div class="linha">
         ${chipStatus(d.status, "status-fixa", d.id)}
-        <div class="linha-info" data-acao="editar-fixa" data-id="${d.id}"><strong>${esc(d.descricao)}</strong><small>${esc(d.tipo || "")}${d.parcelas ? ` · parcela ${esc(d.parcelas)}` : ""}${d.recorrente === false ? " · só este mês" : ""}</small></div>
+        <div class="linha-info" data-acao="editar-fixa" data-id="${d.id}"><strong>${esc(d.descricao)}</strong><small>${esc(d.tipo || "")}${d.parcelas ? ` · parcela ${esc(d.parcelas)}` : ""}</small></div>
+        <button class="tag-fixa ${ehFixa(d) ? "on" : ""}" data-acao="toggle-fixa" data-id="${d.id}" title="${ehFixa(d) ? "Fixa: repete todo mês. Toque para tornar avulsa" : "Avulsa: só este mês. Toque para tornar fixa"}">${ehFixa(d) ? "Fixa" : "Avulsa"}</button>
         <span class="num">${brl(d.valor)}</span></div>`).join("")}
       ${extra}
     </div>`;
   }).join("");
 
+  const totFixas = soma(c.fixas.filter(ehFixa)), totAvulsas = soma(c.fixas.filter((d) => !ehFixa(d)));
   const pagos = soma(c.fixas.filter((d) => d.status === "Pago"));
+  const chipF = (id, nome, v) => `<button class="chip ${filtro === id ? "ativo" : ""}" data-acao="filtro-desp" data-f="${id}">${nome} <b>${brlCurto(v)}</b></button>`;
   return `
   <div class="cabecalho-tela">
-    <div><h2>Despesas fixas</h2><p class="sub">${brl(c.totalFixas)} no mês · ${brl(pagos)} já pago</p></div>
+    <div><h2>Despesas</h2><p class="sub">${brl(c.totalFixas)} no mês · ${brl(pagos)} já pago</p></div>
     <div class="acoes">
-      ${qtdAnterior ? `<button class="btn" data-acao="copiar-fixas">Copiar de ${rotuloMes(anterior, true)}</button>` : ""}
-      <button class="btn btn-primario" data-acao="nova-fixa">+ Despesa</button>
+      ${qtdAnterior ? `<button class="btn" data-acao="copiar-fixas">Copiar fixas de ${rotuloMes(anterior, true)}</button>` : ""}
+      <button class="btn" data-acao="nova-fixa" data-fixa="0">+ Avulsa</button>
+      <button class="btn btn-primario" data-acao="nova-fixa" data-fixa="1">+ Fixa</button>
     </div>
   </div>
-  <p class="dica">Toque no status para alternar entre <b>Pendente → Pago → Reservado</b>.</p>
-  ${grupos || vazio(`Nenhuma despesa fixa em ${rotuloMes(S.mes)}.`, qtdAnterior ? `<button class="btn btn-primario" data-acao="copiar-fixas">Copiar ${qtdAnterior} despesas de ${rotuloMes(anterior, true)}</button>` : "")}`;
+  <div class="chips rolagem">${chipF("todas", "Todas", c.totalFixas)}${chipF("fixas", "Fixas", totFixas)}${chipF("avulsas", "Avulsas", totAvulsas)}</div>
+  <p class="dica"><b>Fixa</b> repete todo mês (entra no "copiar fixas"); <b>avulsa</b> é só deste mês. Toque na etiqueta para trocar, e no status para alternar <b>Pendente → Pago → Reservado</b>.</p>
+  ${grupos || vazio(filtro === "todas" ? `Nenhuma despesa em ${rotuloMes(S.mes)}.` : `Nenhuma despesa ${filtro === "fixas" ? "fixa" : "avulsa"} em ${rotuloMes(S.mes)}.`, qtdAnterior && filtro !== "avulsas" ? `<button class="btn btn-primario" data-acao="copiar-fixas">Copiar ${qtdAnterior} despesas fixas de ${rotuloMes(anterior, true)}</button>` : "")}`;
 }
 
 // ---------- Cartões ----------
@@ -561,6 +569,7 @@ function escolherNovo() {
   <div class="escolhas">
     <button class="escolha" value="cartao" formnovalidate><b>Compra no cartão</b><small>à vista ou parcelada</small></button>
     <button class="escolha" value="fixa" formnovalidate><b>Despesa fixa</b><small>aluguel, água, empréstimo…</small></button>
+    <button class="escolha" value="avulsa" formnovalidate><b>Despesa avulsa</b><small>só deste mês, fora do cartão</small></button>
     <button class="escolha" value="salario" formnovalidate><b>Salário / entrada</b><small>renda do mês</small></button>
     <button class="escolha" value="receber" formnovalidate><b>A receber</b><small>alguém vai te pagar</small></button>
   </div>
@@ -569,7 +578,8 @@ function escolherNovo() {
     modal().close();
     setTimeout(() => {
       if (v === "cartao") formCartao();
-      else if (v === "fixa") formFixa();
+      else if (v === "fixa") formFixa(null, true);
+      else if (v === "avulsa") formFixa(null, false);
       else if (v === "salario" || v === "receber") formRenda(null, v);
     }, 50);
     return false;
@@ -656,13 +666,20 @@ function formFatura(nome) {
 }
 
 // ---------- Despesa fixa ----------
-function formFixa(item) {
+function formFixa(item, fixaInicial = true) {
   const A = aj();
   const novoItem = !item;
-  const i = item || { categoria: A.categorias[0].nome, status: "Pendente", tipo: "Casa", recorrente: true };
+  const catAvulsa = A.categorias.find((c) => c.nome === "Estilo de vida")?.nome || A.categorias[0].nome;
+  const i = item || (fixaInicial
+    ? { categoria: A.categorias[0].nome, status: "Pendente", tipo: "Casa", recorrente: true }
+    : { categoria: catAvulsa, status: "Pago", tipo: "Outros", recorrente: false });
   const cats = A.categorias.map((c) => c.nome);
-  const html = `<h2>${novoItem ? "Despesa fixa" : "Editar despesa"}</h2>
-  <label class="campo"><span>Despesa</span><input name="descricao" required value="${esc(i.descricao || "")}" placeholder="ex.: aluguel, água, empréstimo carro" autocomplete="off"></label>
+  const html = `<h2>${novoItem ? "Nova despesa" : "Editar despesa"}</h2>
+  <div class="segmentado" role="radiogroup" aria-label="Tipo de despesa">
+    <label><input type="radio" name="frequencia" value="fixa" ${i.recorrente !== false ? "checked" : ""}><span><b>Fixa</b><small>repete todo mês</small></span></label>
+    <label><input type="radio" name="frequencia" value="avulsa" ${i.recorrente === false ? "checked" : ""}><span><b>Avulsa</b><small>só neste mês</small></span></label>
+  </div>
+  <label class="campo"><span>Despesa</span><input name="descricao" required value="${esc(i.descricao || "")}" placeholder="${i.recorrente === false ? "ex.: conserto, presente, farmácia" : "ex.: aluguel, água, empréstimo carro"}" autocomplete="off"></label>
   <div class="dupla">
     <label class="campo"><span>Valor</span><input name="valor" inputmode="decimal" required value="${valorBR(i.valor)}" placeholder="0,00"></label>
     <label class="campo"><span>Status</span><select name="status">${opcoes(["Pendente", "Pago", "Reservado"], i.status)}</select></label>
@@ -671,8 +688,7 @@ function formFixa(item) {
     <label class="campo"><span>Categoria</span><select name="categoria">${opcoes(cats.includes(i.categoria) ? cats : [...cats, i.categoria], i.categoria)}</select></label>
     <label class="campo"><span>Tipo de gasto</span><select name="tipo">${opcoes(A.tipos.includes(i.tipo) ? A.tipos : [...A.tipos, i.tipo], i.tipo)}</select></label>
   </div>
-  <label class="campo"><span>Parcelas (opcional, ex.: 10/60)</span><input name="parcelas" value="${esc(i.parcelas || "")}" placeholder="—"></label>
-  <label class="check-linha"><input type="checkbox" name="recorrente" ${i.recorrente !== false ? "checked" : ""}> Repete todo mês (entra no "copiar do mês anterior")</label>
+  <label class="campo campo-parcelas" ${i.recorrente === false ? "hidden" : ""}><span>Parcelas (opcional, ex.: 10/60)</span><input name="parcelas" value="${esc(i.parcelas || "")}" placeholder="—"></label>
   ${rodapeModal(!novoItem)}`;
   abrirModal(html, async (d, botao, form) => {
     if (botao === "excluir") {
@@ -681,10 +697,15 @@ function formFixa(item) {
     }
     if (!d.descricao.trim()) { toast("Dê um nome à despesa"); return false; }
     const valor = lerValor(form); if (valor === null) return false;
-    const dados = { descricao: d.descricao.trim(), valor, status: d.status, categoria: d.categoria, tipo: d.tipo, parcelas: d.parcelas.trim(), recorrente: Boolean(d.recorrente) };
+    const dados = { descricao: d.descricao.trim(), valor, status: d.status, categoria: d.categoria, tipo: d.tipo, parcelas: d.parcelas.trim(), recorrente: d.frequencia !== "avulsa" };
     if (novoItem) await tentar(() => store.adicionar("despesas", { ...dados, mes: S.mes }), "Despesa adicionada");
     else await tentar(() => store.atualizar("despesas", item.id, dados), "Despesa atualizada");
-  }, ligarSugestaoTipo);
+  }, (form) => {
+    ligarSugestaoTipo(form);
+    form.querySelectorAll("[name=frequencia]").forEach((r) => r.addEventListener("change", () => {
+      form.querySelector(".campo-parcelas").hidden = form.querySelector("[name=frequencia]:checked").value === "avulsa";
+    }));
+  });
 }
 
 // ---------- Renda ----------
@@ -838,9 +859,15 @@ document.addEventListener("click", async (e) => {
     case "mes-proximo": return mudarMes(somaMes(S.mes, 1));
     case "novo":
       if (S.aba === "cartoes") return formCartao();
-      if (S.aba === "fixas") return formFixa();
+      if (S.aba === "fixas") return formFixa(null, S.filtroDesp !== "avulsas");
       return escolherNovo();
-    case "nova-fixa": return formFixa();
+    case "nova-fixa": return formFixa(null, el.dataset.fixa !== "0");
+    case "filtro-desp": S.filtroDesp = el.dataset.f; return render();
+    case "toggle-fixa": {
+      const d = S.despesas.find((x) => x.id === id);
+      const fixa = d.recorrente === false;
+      return tentar(() => store.atualizar("despesas", id, { recorrente: fixa }), fixa ? "Agora é fixa: vai para os próximos meses" : "Agora é avulsa: só neste mês");
+    }
     case "novo-cartao": return formCartao();
     case "nova-renda": return formRenda(null, el.dataset.tipo);
     case "editar-fixa": return formFixa(S.despesas.find((x) => x.id === id));
