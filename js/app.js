@@ -165,6 +165,10 @@ function render() {
   if (S.aba === "graficos") desenharGraficos();
 }
 
+// Observação: campo do formulário e linha na lista
+const campoObs = (valor) => `<label class="campo"><span>Observação (opcional)</span><textarea name="obs" rows="2" maxlength="500" placeholder="Alguma anotação sobre este lançamento">${esc(valor || "")}</textarea></label>`;
+const linhaObs = (o) => (o ? `<small class="obs" title="${esc(o)}">${esc(o)}</small>` : "");
+
 const chipStatus = (status, acao, id) => {
   const cls = { Pago: "pago", Reservado: "reservado", Pendente: "pendente" }[status] || "pendente";
   return `<button class="chip-status ${cls}" data-acao="${acao}" data-id="${esc(id)}" title="Toque para mudar">${esc(status || "Pendente")}</button>`;
@@ -273,7 +277,7 @@ function telaFixas(c) {
       <div class="cartao-titulo"><h3>${esc(cat || "Sem categoria")}</h3><span class="num">${brl(soma(itens) + (extra ? c.totalCartoes : 0))}</span></div>
       ${itens.map((d) => `<div class="linha">
         ${chipStatus(d.status, "status-fixa", d.id)}
-        <div class="linha-info" data-acao="editar-fixa" data-id="${d.id}"><strong>${esc(d.descricao)}</strong><small>${esc(d.tipo || "")}${d.parcelas ? ` · parcela ${esc(d.parcelas)}` : ""}</small></div>
+        <div class="linha-info" data-acao="editar-fixa" data-id="${d.id}"><strong>${esc(d.descricao)}</strong><small>${esc(d.tipo || "")}${d.parcelas ? ` · parcela ${esc(d.parcelas)}` : ""}</small>${linhaObs(d.obs)}</div>
         <button class="tag-fixa ${ehFixa(d) ? "on" : ""}" data-acao="toggle-fixa" data-id="${d.id}" title="${ehFixa(d) ? "Fixa: repete todo mês. Toque para tornar avulsa" : "Avulsa: só este mês. Toque para tornar fixa"}">${ehFixa(d) ? "Fixa" : "Avulsa"}</button>
         <span class="num">${brl(d.valor)}</span></div>`).join("")}
       ${extra}
@@ -319,7 +323,7 @@ function telaCartoes(c) {
       </div>
       ${f.itens.map((i) => `<div class="linha">
         <div class="linha-info" data-acao="editar-cartao" data-id="${i.id}"><strong>${esc(i.descricao)}</strong>
-          <small>${(i.parcelaTotal || 1) > 1 ? `<span class="parc">${i.parcelaAtual}/${i.parcelaTotal}</span> ` : ""}${esc(i.tipo || "")} · ${esc(i.quem || "Casal")}</small></div>
+          <small>${(i.parcelaTotal || 1) > 1 ? `<span class="parc">${i.parcelaAtual}/${i.parcelaTotal}</span> ` : ""}${esc(i.tipo || "")} · ${esc(i.quem || "Casal")}</small>${linhaObs(i.obs)}</div>
         <span class="num">${brl(i.valor)}</span></div>`).join("") || `<p class="sub">Sem itens detalhados.</p>`}
     </div>`;
   }).join("");
@@ -349,7 +353,7 @@ function telaRendas(c) {
   <div class="grade-2">
     <div class="cartao">
       <div class="cartao-titulo"><h3>Salários e entradas</h3><span class="num">${brl(soma(c.salarios))}</span></div>
-      ${c.salarios.map((r) => `<div class="linha"><div class="linha-info" data-acao="editar-renda" data-id="${r.id}"><strong>${esc(r.descricao)}</strong><small>${esc(r.pessoa || "")}</small></div><span class="num">${brl(r.valor)}</span></div>`).join("")
+      ${c.salarios.map((r) => `<div class="linha"><div class="linha-info" data-acao="editar-renda" data-id="${r.id}"><strong>${esc(r.descricao)}</strong><small>${esc(r.pessoa || "")}</small>${linhaObs(r.obs)}</div><span class="num">${brl(r.valor)}</span></div>`).join("")
         || vazio("Nenhum salário lançado.", salAnt ? `<button class="btn" data-acao="copiar-salarios">Copiar de ${rotuloMes(anterior, true)}</button>` : "")}
     </div>
     <div class="cartao">
@@ -357,7 +361,7 @@ function telaRendas(c) {
       ${c.receber.length ? `<p class="dica">Marque quando o dinheiro entrar. Pendente: <b class="num">${brl(c.receberPendente)}</b></p>` : ""}
       ${c.receber.map((r) => `<div class="linha">
         <button class="check ${r.recebido ? "on" : ""}" data-acao="toggle-recebido" data-id="${r.id}" aria-label="${r.recebido ? "Recebido" : "Marcar como recebido"}">${r.recebido ? "✓" : ""}</button>
-        <div class="linha-info" data-acao="editar-renda" data-id="${r.id}"><strong class="${r.recebido ? "riscado" : ""}">${esc(r.descricao)}</strong><small>${esc(r.obs || (r.recebido ? "recebido" : "pendente"))}</small></div>
+        <div class="linha-info" data-acao="editar-renda" data-id="${r.id}"><strong class="${r.recebido ? "riscado" : ""}">${esc(r.descricao)}</strong><small>${r.recebido ? "recebido" : "pendente"}</small>${linhaObs(r.obs)}</div>
         <span class="num">${brl(r.valor)}</span></div>`).join("") || vazio("Ninguém te deve nada este mês.")}
     </div>
   </div>`;
@@ -608,6 +612,7 @@ function formCartao(item) {
     <label class="campo"><span>Tipo de gasto</span><select name="tipo">${opcoes(A.tipos.includes(i.tipo) ? A.tipos : [...A.tipos, i.tipo], i.tipo)}</select></label>
     <label class="campo"><span>Quem</span><select name="quem">${opcoes(A.pessoas, i.quem)}</select></label>
   </div>
+  ${campoObs(i.obs)}
   ${temGrupo ? `<label class="check-linha"><input type="checkbox" name="todas" checked> Aplicar nas próximas parcelas também (nome, cartão, tipo, quem e valor)</label>` : ""}
   ${rodapeModal(!novoItem)}`;
 
@@ -623,12 +628,13 @@ function formCartao(item) {
       const grupo = total > 1 ? novoId() : null;
       const ops = [];
       for (let p = atual; p <= total; p++) {
-        ops.push({ tipo: "add", col: "cartoes", dados: { ...base, valor, mes: somaMes(S.mes, p - atual), parcelaAtual: p, parcelaTotal: total, grupo } });
+        ops.push({ tipo: "add", col: "cartoes", dados: { ...base, valor, obs: d.obs.trim(), mes: somaMes(S.mes, p - atual), parcelaAtual: p, parcelaTotal: total, grupo } });
       }
       await tentar(() => store.lote(ops), total > atual ? `Lançado em ${ops.length} meses` : "Compra lançada");
     } else {
       const alvo = d.todas && item.grupo ? S.cartoes.filter((x) => x.grupo === item.grupo && x.parcelaAtual >= item.parcelaAtual) : [item];
-      await tentar(() => store.lote(alvo.map((x) => ({ tipo: "update", col: "cartoes", id: x.id, dados: { ...base, valor } }))), "Compra atualizada");
+      // a observação vale só para a parcela que está sendo editada
+      await tentar(() => store.lote(alvo.map((x) => ({ tipo: "update", col: "cartoes", id: x.id, dados: x.id === item.id ? { ...base, valor, obs: d.obs.trim() } : { ...base, valor } }))), "Compra atualizada");
     }
   }, ligarSugestaoTipo);
 }
@@ -689,6 +695,7 @@ function formFixa(item, fixaInicial = true) {
     <label class="campo"><span>Tipo de gasto</span><select name="tipo">${opcoes(A.tipos.includes(i.tipo) ? A.tipos : [...A.tipos, i.tipo], i.tipo)}</select></label>
   </div>
   <label class="campo campo-parcelas" ${i.recorrente === false ? "hidden" : ""}><span>Parcelas (opcional, ex.: 10/60)</span><input name="parcelas" value="${esc(i.parcelas || "")}" placeholder="—"></label>
+  ${campoObs(i.obs)}
   ${rodapeModal(!novoItem)}`;
   abrirModal(html, async (d, botao, form) => {
     if (botao === "excluir") {
@@ -697,7 +704,7 @@ function formFixa(item, fixaInicial = true) {
     }
     if (!d.descricao.trim()) { toast("Dê um nome à despesa"); return false; }
     const valor = lerValor(form); if (valor === null) return false;
-    const dados = { descricao: d.descricao.trim(), valor, status: d.status, categoria: d.categoria, tipo: d.tipo, parcelas: d.parcelas.trim(), recorrente: d.frequencia !== "avulsa" };
+    const dados = { descricao: d.descricao.trim(), valor, status: d.status, categoria: d.categoria, tipo: d.tipo, parcelas: d.parcelas.trim(), recorrente: d.frequencia !== "avulsa", obs: d.obs.trim() };
     if (novoItem) await tentar(() => store.adicionar("despesas", { ...dados, mes: S.mes }), "Despesa adicionada");
     else await tentar(() => store.atualizar("despesas", item.id, dados), "Despesa atualizada");
   }, (form) => {
@@ -717,9 +724,9 @@ function formRenda(item, tipoNovo) {
   const html = `<h2>${receber ? "A receber de alguém" : "Salário / entrada"}</h2>
   <label class="campo"><span>${receber ? "Do quê / de quem" : "Descrição"}</span><input name="descricao" required value="${esc(i.descricao || "")}" placeholder="${receber ? "ex.: combustível viagem (Sara, Joana)" : "ex.: Salário Igor"}" autocomplete="off"></label>
   <label class="campo"><span>Valor</span><input name="valor" inputmode="decimal" required value="${valorBR(i.valor)}" placeholder="0,00"></label>
-  ${receber ? `<label class="campo"><span>Observação</span><input name="obs" value="${esc(i.obs || "")}" placeholder="ex.: tirar da cx do estúdio"></label>
-    <label class="check-linha"><input type="checkbox" name="recebido" ${i.recebido ? "checked" : ""}> Já recebi</label>`
+  ${receber ? `<label class="check-linha"><input type="checkbox" name="recebido" ${i.recebido ? "checked" : ""}> Já recebi</label>`
     : `<label class="campo"><span>De quem</span><select name="pessoa">${opcoes(A.pessoas, i.pessoa)}</select></label>`}
+  ${campoObs(i.obs)}
   ${rodapeModal(Boolean(item))}`;
   abrirModal(html, async (d, botao, form) => {
     if (botao === "excluir") {
@@ -730,7 +737,7 @@ function formRenda(item, tipoNovo) {
     const valor = lerValor(form); if (valor === null) return false;
     const dados = receber
       ? { tipo: "receber", descricao: d.descricao.trim(), valor, obs: (d.obs || "").trim(), recebido: Boolean(d.recebido), pessoa: "Casal" }
-      : { tipo: "salario", descricao: d.descricao.trim(), valor, pessoa: d.pessoa, recebido: true };
+      : { tipo: "salario", descricao: d.descricao.trim(), valor, pessoa: d.pessoa, recebido: true, obs: (d.obs || "").trim() };
     if (item) await tentar(() => store.atualizar("rendas", item.id, dados), "Atualizado");
     else await tentar(() => store.adicionar("rendas", { ...dados, mes: S.mes }), "Adicionado");
   });
@@ -925,6 +932,12 @@ document.addEventListener("click", async (e) => {
       return tentar(() => salvarAjustes({ categorias: cats, categoriaFaturas: $("#cat-faturas").value }), somaPct === 100 ? "Categorias salvas" : `Salvo (os % somam ${somaPct}%)`);
     }
     case "exportar": return exportarBackup();
+    case "alternar-menu": {
+      const oculto = !$("#app").classList.contains("menu-oculto");
+      aplicarMenu(oculto);
+      try { localStorage.setItem("fc_menu_oculto", oculto ? "1" : "0"); } catch {}
+      return;
+    }
     case "sair": return tentar(() => store.sair());
   }
 });
@@ -979,6 +992,16 @@ function agendarRender() {
     render();
   });
 }
+
+function aplicarMenu(oculto) {
+  $("#app").classList.toggle("menu-oculto", oculto);
+  const b = $("#btn-menu");
+  b.setAttribute("aria-label", oculto ? "Mostrar menu" : "Ocultar menu");
+  b.title = oculto ? "Mostrar menu" : "Ocultar menu";
+  b.setAttribute("aria-expanded", String(!oculto));
+  if (S.aba === "graficos") setTimeout(() => S.graficos.forEach((g) => g.resize()), 50);
+}
+aplicarMenu(localStorage.getItem("fc_menu_oculto") === "1");
 
 function mostrarErro(e) {
   const p = $("#erro-login");

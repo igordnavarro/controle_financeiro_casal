@@ -284,3 +284,19 @@ input:focus, select:focus { outline: 2px solid var(--marca); outline-offset: 1px
 .segmentado input:checked + span { border-color: var(--marca); background: var(--marca-suave); }
 .segmentado input:focus-visible + span { outline: 2px solid var(--marca); outline-offset: 1px; }
 @media (max-width: 420px) { .linha .tag-fixa { padding: 2px 6px; } .chip-status { min-width: 74px; } }
+
+/* Observação */
+.campo textarea { width: 100%; border: 1px solid var(--linha); background: var(--superficie-2); border-radius: 12px; padding: 11px 12px; font: inherit; font-size: 16px; resize: vertical; min-height: 48px; }
+.linha-info small.obs { font-style: italic; color: var(--texto-2); }
+.linha-info small.obs::before { content: "✎ "; font-style: normal; }
+
+/* Menu lateral recolhível (computador) */
+.so-pc { display: none !important; }
+@media (min-width: 900px) {
+  .so-pc { display: grid !important; }
+  .topo { justify-content: flex-start; }
+  .topo .topo-direita { margin-left: auto; }
+  .app.menu-oculto { grid-template-columns: 1fr; }
+  .app.menu-oculto .nav-lateral { display: none; }
+  .app.menu-oculto .conteudo { max-width: 1440px; }
+}
