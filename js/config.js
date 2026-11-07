@@ -39,6 +39,7 @@ export const PADRAO = {
   ],
   tipos: [
     "Casa", "Mercado", "Transporte", "Saúde", "Pets", "Assinaturas",
-    "Viagem e lazer", "Roupas", "Estúdio", "Educação", "Presentes", "Outros"
+    "Viagem e lazer", "Roupas", "Cuidados pessoais", "Estúdio", "Educação",
+    "Presentes", "Taxas e juros", "Poupança", "Outros"
   ]
 };

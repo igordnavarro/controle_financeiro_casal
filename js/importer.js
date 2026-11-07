@@ -39,17 +39,20 @@ function inteiro(v) {
 }
 
 const REGRAS_TIPO = [
-  ["Assinaturas", /netflix|spot|youtube|google|storage|armazenamento|icloud|prime|disney|hbo|deezer|assinatura|anuidade|anuiidade/],
-  ["Pets", /racao|faisca|zenrelia|vet|pet|banho e tosa|petshop/],
-  ["Viagem e lazer", /airbnb|hotel|passagem|viagem|beto carrero|floripa|penha|cinema|show|cadeira de praia|lanche|restaurante|ifood|bar /],
-  ["Transporte", /combust|gasolina|pedagio|carro|uber|onibus|estacionamento|ipva|seguro carro|oficina|pneu|chave do carro/],
-  ["Estúdio", /estudio|micromotor|tablet|placa|tintas|aliexpress/],
-  ["Saúde", /remedio|consulta|farmacia|medic|dentista|exame|plano de saude|seguro de vida/],
-  ["Casa", /aluguel|agua|energia|copel|luz|internet|geladeira|micro|fogao|condominio|gas|mudanca|frete|casa|mobilia/],
-  ["Mercado", /mercado|supermercado|atacad|padaria|acougue|hortifruti|feira/],
-  ["Roupas", /roupa|sapato|havan|renner|riachuelo|tenis|pernambucanas|calcado/],
-  ["Educação", /curso|faculdade|livro|escola|aula/],
-  ["Presentes", /presente|aniversario/]
+  ["Taxas e juros", /\biof\b|juros|multa|estorno|taxa|anuidade|anuiidade|tarifa/],
+  ["Poupança", /poupanca|investimento(?! novo estudio)|reserva|tesouro|cdb/],
+  ["Assinaturas", /netflix|spot|youtube|google|storage|armazenamento|icloud|prime|disney|hbo|deezer|assinatura|capcut|meli \+|queima diaria|recarga|\bvivo\b|claro|tim\b/],
+  ["Pets", /racao|faisca|fasica|zenrelia|vet|pet|banho e tosa|petshop/],
+  ["Viagem e lazer", /airbnb|hotel|passage|viagem|viuagem|eurotrip|aereo|aero|beto carrero|floripa|penha|cinema|show|cadeira de praia|lanche|restaurante|ifood|bar |camping|acampamento|almoco|cafe da manha|alimentacao|budpark|madeiro|piemonte|\bbus\b|jogo|violao|bateria/],
+  ["Transporte", /combust|gasolina|pedagio|carro|uber|onibus|estacionamento|ipva|seguro carro|oficina|pneu|chave do carro|autozone|ford|conserto|concerto|biscicleta|bicicleta/],
+  ["Estúdio", /estudio|estudo|micromotor|micro motor|tablet|placa|tintas|aliexpress|esmalte|broca|\bgel\b|geis|lixa|mandril|palito|topcoat|kinectis|carmen lee|kit gravacao|atelie|prep|unhas/],
+  ["Cuidados pessoais", /cabelo|perfume|shampoo|condicionador|creme|maquiagem|hidratante|sabonete|gilete|corte e barba|barbearia|produtos rosto|produtos de cabelo|tesoura/],
+  ["Saúde", /remedio|consulta|farmacia|medic|dentista|exame|plano de saude|seguro de vida|unimed|inalador|cirurgia|canetas emagrecedoras|panvel|raia|dipirona|boxe|academia/],
+  ["Casa", /aluguel|agua|energia|copel|luz|internet|geladeira|micro|fogao|condominio|\bgas\b|mudanca|frete|casa|mobilia|movel|cortina|varao|cortador de grama|aspirador|papel de parede|torneira|mesa|escorredor|faqueiro|talheres|copos|aquecedor|plantas|rejunte|ceramica|material de construcao|seguro locacao|tela|cama/],
+  ["Mercado", /mercado(?! pago| livre)|supermercado|atacad|padaria|acougue|hortifruti|feira/],
+  ["Roupas", /roupa|sapato|havan|renner|riachuelo|tenis|t3nis|pernambucanas|calcado|vestido|calca|blusa|camisa|camiseta|sandalia|sutia|chinelo|bermuda|\bmaio\b|shorts|uniforme|mala|acessorios thais|\bcea\b/],
+  ["Educação", /curso|faculdade|livro|escola|aula|mentoria|\bmba\b|ministros/],
+  ["Presentes", /presente|aniversario|lembrancinha|pascoa|doces/]
 ];
 
 export function adivinharTipo(descricao) {
@@ -72,16 +75,20 @@ function normalizarCategoria(c, categorias) {
 }
 
 function normalizarCartao(nome, cartoesConhecidos) {
-  const n = semAcento(nome).replace(/\s+/g, " ");
+  let n = semAcento(nome).replace(/\s+/g, " ");
   if (!n) return "";
-  const achado = cartoesConhecidos.find((c) => semAcento(c).replace(/\s+/g, " ") === n);
+  if (/^mercado ?n?pago$/.test(n)) n = "mercado pago";
+  const chave = n.replace(/\s/g, "");
+  const achado = cartoesConhecidos.find((c) => semAcento(c).replace(/\s/g, "") === chave);
   if (achado) return achado;
   // Capitaliza palavras: "cresol igor" -> "Cresol Igor"
-  return String(nome).trim().replace(/\s+/g, " ").replace(/\b\p{L}/gu, (l) => l.toUpperCase());
+  return n.replace(/\b\p{L}/gu, (l) => l.toUpperCase());
 }
 
 // "Cartão Nu Igor" -> "Nubank Igor" (cada palavra é início de uma palavra do cartão)
 export function cartaoDaFatura(desc, cartoesConhecidos) {
+  const direto = normalizarCartao(String(desc).replace(/^\s*cart[aã]o\s*/i, ""), [...cartoesConhecidos]);
+  if (cartoesConhecidos.includes(direto)) return direto;
   const tokens = semAcento(desc).replace(/^cartao\s*/, "").split(/\s+/).filter(Boolean);
   let melhor = null, sobra = Infinity;
   for (const c of cartoesConhecidos) {
@@ -190,6 +197,7 @@ export function lerAba(linhas, mes, opcoes = {}) {
     if (cVT < 0) cVT = achaColuna(hCart, /^valor$/, cO);
     const cVI = achaColuna(hCart, /^valor igor/, cO);
     const cVTh = achaColuna(hCart, /^valor thais/, cO);
+    const cEst = achaColuna(hCart, /estudio/, cO);
     let cartaoAnterior = "";
     for (let r = hCart + 1; r < L.length; r++) {
       const desc = txt(r, cO);
@@ -200,11 +208,13 @@ export function lerAba(linhas, mes, opcoes = {}) {
       cartaoAnterior = cartao;
       const vi = dinheiro(L[r][cVI]) || 0, vt = dinheiro(L[r][cVTh]) || 0;
       const quem = vi && !vt ? "Igor" : vt && !vi ? "Thais" : quemDoCartao(cartao);
+      const doEstudio = cEst >= 0 && semAcento(txt(r, cEst)).startsWith("sim");
+      const parcelaTotal = Math.max(1, inteiro(L[r][cPT]) || 1);
       out.cartoes.push({
-        mes, descricao: desc, cartao, valor,
-        parcelaAtual: inteiro(L[r][cPA]) || 1,
-        parcelaTotal: inteiro(L[r][cPT]) || 1,
-        quem, tipo: adivinharTipo(desc)
+        mes, descricao: desc.replace(/\s+/g, " "), cartao, valor,
+        parcelaAtual: Math.min(parcelaTotal, Math.max(1, inteiro(L[r][cPA]) || 1)),
+        parcelaTotal,
+        quem, tipo: doEstudio ? "Estúdio" : adivinharTipo(desc)
       });
     }
   }
